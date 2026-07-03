@@ -1,7 +1,10 @@
 # reap
 
-Free up system resources before gaming, then restore everything — safely and
-reversibly. Ubuntu + GNOME, NVIDIA Optimus laptop target. This is the **V1 core**.
+**Objective:** Play Elden Ring Nightreaim on a GTX 1050 laptop.
+
+This project started as a practical need: an old notebook with 16GB RAM and a GTX 1050 wasn't cutting it for Elden Ring's DLC. Rather than accept lower framerates, the approach was to systematically identify and remove non-essential system load — background services consuming VRAM, I/O-heavy daemons, and underutilized processes. What began as a quick bash script evolved into a structured, reversible resource optimizer.
+
+`reap` stops non-essential services, applies kernel optimizations (VM tuning, CPU governor), and restores everything when you're done. Built for Ubuntu + GNOME. This is the **V1 core**.
 
 ## Usage
 

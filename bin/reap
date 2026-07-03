@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve symlinks so `ln -s bin/reap ~/.local/bin/reap` still finds lib/.
+REAP_BIN_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+REAP_LIB_DIR="$(cd "$REAP_BIN_DIR/../lib" && pwd)"
+
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/log.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/state.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/privilege.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/denylist.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/services.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/registry.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/optimizers/gamemode.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/optimizers/thermal.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/optimizers/cpu.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/optimizers/vm.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/core.sh"
+
+reap::main "$@"

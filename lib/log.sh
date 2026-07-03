@@ -6,6 +6,10 @@ log::_emit() {
   local level="$1" stream="$2"
   shift 2
   printf '%s [%-5s] %s\n' "$(date '+%H:%M:%S')" "$level" "$*" >"$stream"
+  # Mirror to the persistent journal when an execution session is active.
+  if [[ -n "${REAP_SESSION_ID:-}" ]] && declare -F journal::append >/dev/null 2>&1; then
+    journal::append "${level,,}" "$*"
+  fi
 }
 
 log::info() { log::_emit "INFO" /dev/stdout "$@"; }

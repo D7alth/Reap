@@ -8,10 +8,40 @@ reversibly. Ubuntu + GNOME, NVIDIA Optimus laptop target. This is the **V1 core*
 ```
 reap gaming   # stop non-essential services/apps + apply optimizations
 reap exit     # restore exactly what 'gaming' changed (no-op if no saved state)
+reap status   # show if gaming mode is active, what changed, and recent runs
 reap help
 ```
 
 Apps are **not** reopened automatically — relaunch them yourself after `exit`.
+
+## Status & logs
+
+`reap status` is read-only (no sudo) and reports whether gaming mode is active,
+which services/kernel values reap changed, the live kernel state, and a summary of
+recent executions:
+
+```
+$ reap status
+reap — status
+
+gaming mode active: yes
+
+changed by reap (restored on exit):
+  services stopped:
+    - ollama
+    - snapd
+  vm.swappiness (original): 60
+  power profile (original): balanced
+...
+recent executions (last 10):
+  20260703T120000-111    gaming  2026-07-03T12:00:00-0300  ok
+  20260703T130000-222    exit    2026-07-03T13:00:00-0300  warnings
+```
+
+Each `gaming`/`exit` run is journaled as structured JSONL in
+`${XDG_STATE_HOME:-$HOME/.local/state}/reap/executions.jsonl`, retained for the
+**last 10 executions**. See [.claude/spec-observability.md](.claude/spec-observability.md)
+for the format and known limitations.
 
 ## Install
 
@@ -83,7 +113,9 @@ two concurrent runs from corrupting it, and backups are never overwritten
 ```
 bin/reap                 entry point (sources lib, dispatches)
 lib/core.sh              dispatch, lock, gaming/exit
-lib/log.sh               logging + notify
+lib/log.sh               console logging + notify (mirrors to journal)
+lib/journal.sh           persistent JSONL execution log (last 10 runs)
+lib/status.sh            reap status (read-only report)
 lib/state.sh             save/restore with idempotency guard
 lib/privilege.sh         sudo preflight + verified execution
 lib/services.sh          service target set + stop/restore
@@ -91,7 +123,7 @@ lib/denylist.sh          non-editable protection list
 lib/apps.sh              graceful app shutdown
 lib/registry.sh          optimizer registry
 lib/optimizers/*.sh      gamemode, cpu, vm, thermal
-tests/run.sh             root-free tests (denylist, state)
+tests/run.sh             root-free tests (denylist, state, journal)
 ```
 
 ## Tests

@@ -15,6 +15,8 @@ source "$LIB_DIR/log.sh" >/dev/null
 source "$LIB_DIR/state.sh"
 # shellcheck source=/dev/null
 source "$LIB_DIR/denylist.sh"
+# shellcheck source=/dev/null
+source "$LIB_DIR/journal.sh"
 
 PASS=0
 FAIL=0
@@ -51,6 +53,24 @@ assert_eq "$(state::load vm-swappiness)" "60" "save_once keeps first value"
 assert_true state::has vm-swappiness
 state::clear vm-swappiness
 assert_false state::has vm-swappiness
+
+echo "journal json escaping:"
+assert_eq "$(journal::_json_escape 'a"b\c')" 'a\"b\\c' "escapes quote and backslash"
+
+echo "journal retention — last 10 executions (spec v1.1):"
+export REAP_LOG_FILE="$REAP_STATE_DIR/exec.jsonl"
+: >"$REAP_LOG_FILE"
+for i in $(seq 1 12); do
+  REAP_SESSION_ID="sess-$(printf '%02d' "$i")"
+  REAP_SESSION_CMD="gaming"
+  journal::append info "entry for session $i"
+done
+journal::prune 10
+distinct="$(grep -o '"session":"[^"]*"' "$REAP_LOG_FILE" | sort -u | wc -l | tr -d ' ')"
+assert_eq "$distinct" "10" "retention keeps exactly 10 sessions"
+if grep -q '"session":"sess-01"' "$REAP_LOG_FILE"; then no "oldest session dropped"; else ok "oldest session (sess-01) dropped"; fi
+if grep -q '"session":"sess-12"' "$REAP_LOG_FILE"; then ok "newest session (sess-12) kept"; else no "newest session kept"; fi
+unset REAP_SESSION_ID REAP_SESSION_CMD REAP_LOG_FILE
 
 echo
 echo "passed: $PASS  failed: $FAIL"

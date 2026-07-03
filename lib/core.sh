@@ -18,6 +18,7 @@ reap::_has_optimizer_state() {
 
 reap::gaming() {
   reap::_acquire_lock
+  journal::start gaming
   log::info "=== reap gaming: freeing resources ==="
   sudo::preflight || exit 1
   svc::stop_configured
@@ -30,6 +31,7 @@ reap::gaming() {
 
 reap::exit() {
   reap::_acquire_lock
+  journal::start exit
   log::info "=== reap exit: restoring system ==="
   # RF-05 + bug B3: with no saved state, never start services blindly — warn only.
   if ! state::has "$REAP_ACTIVE_SERVICES_KEY" && ! reap::_has_optimizer_state; then
@@ -53,9 +55,11 @@ reap — free up system resources for gaming, then restore everything.
 Usage:
   reap gaming   stop non-essential services/apps + apply optimizations
   reap exit     restore everything 'gaming' changed (no-op if no saved state)
+  reap status   show whether gaming mode is active, what changed, recent runs
   reap help     show this help
 
-State is kept in ${XDG_STATE_HOME:-$HOME/.local/state}/reap/.
+State and the execution journal (last 10 runs) are kept in
+${XDG_STATE_HOME:-$HOME/.local/state}/reap/.
 Service and app sets are defined in lib/services.sh and lib/apps.sh.
 EOF
 }
@@ -65,6 +69,7 @@ reap::main() {
   case "$command" in
     gaming) reap::gaming ;;
     exit) reap::exit ;;
+    status) reap::status ;;
     help | -h | --help) reap::help ;;
     *)
       log::error "unknown command: $command"

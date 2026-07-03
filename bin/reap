@@ -8,6 +8,8 @@ REAP_LIB_DIR="$(cd "$REAP_BIN_DIR/../lib" && pwd)"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/log.sh"
 # shellcheck source=/dev/null
+source "$REAP_LIB_DIR/journal.sh"
+# shellcheck source=/dev/null
 source "$REAP_LIB_DIR/state.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/privilege.sh"
@@ -27,6 +29,8 @@ source "$REAP_LIB_DIR/optimizers/thermal.sh"
 source "$REAP_LIB_DIR/optimizers/cpu.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/optimizers/vm.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/status.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/core.sh"
 

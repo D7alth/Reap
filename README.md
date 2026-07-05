@@ -23,7 +23,7 @@ Apps are **not** reopened automatically — relaunch them yourself after `exit`.
 `gaming` does, launches the game on the NVIDIA dGPU (via `prime-run` + `gamemoderun`
 when present), blocks until the game exits, then restores everything — automatically,
 even on a crash or Ctrl-C. It refuses to start if a `gaming` session is already
-active (run `reap exit` first). See [.claude/spec-play.md](.claude/spec-play.md).
+active (run `reap exit` first).
 
 For **Steam/Proton games** (EAC included), use `reap play steam:<appid>` — e.g.
 `reap play steam:2622380` for ELDEN RING NIGHTREIGN. reap resolves the appid in your
@@ -60,7 +60,7 @@ recent executions (last 10):
 
 Each `gaming`/`exit` run is journaled as structured JSONL in
 `${XDG_STATE_HOME:-$HOME/.local/state}/reap/executions.jsonl`, retained for the
-**last 10 executions**. See [.claude/spec-observability.md](.claude/spec-observability.md)
+**last 10 executions**.
 for the format and known limitations.
 
 ## Install
@@ -127,11 +127,11 @@ To uninstall, remove the symlink (or the `PATH` line) — `reap` writes only to
     and prints the exact command to render the game on the NVIDIA dGPU
     (`prime-run gamemoderun <game>`, or the `__NV_PRIME_RENDER_OFFLOAD` env method).
     Advisory only — reap doesn't launch the game, so it changes no system state and
-    has nothing to revert. See [.claude/spec-gpu-offload.md](.claude/spec-gpu-offload.md).
+    has nothing to revert.
   - `gpu-clock` — pins the NVIDIA **PowerMizer** to *Prefer Maximum Performance*
     (`GPUPowerMizerMode=1`) via `nvidia-settings` (user-level, no sudo) and restores
     the original mode on `exit`. Fixes the "60 → 10 fps, alt-tab restores it" clock
-    collapse; behind the thermal guard. See [.claude/spec-fps-fix.md](.claude/spec-fps-fix.md).
+    collapse; behind the thermal guard.
 
 State lives in `${XDG_STATE_HOME:-$HOME/.local/state}/reap/`. A `flock` prevents
 two concurrent runs from corrupting it, and backups are never overwritten

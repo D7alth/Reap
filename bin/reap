@@ -35,5 +35,7 @@ source "$REAP_LIB_DIR/optimizers/gpu.sh"
 source "$REAP_LIB_DIR/status.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/core.sh"
+# shellcheck source=/dev/null
+source "$REAP_LIB_DIR/play.sh"
 
 reap::main "$@"

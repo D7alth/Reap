@@ -53,10 +53,11 @@ reap::help() {
 reap — free up system resources for gaming, then restore everything.
 
 Usage:
-  reap gaming   stop non-essential services/apps + apply optimizations
-  reap exit     restore everything 'gaming' changed (no-op if no saved state)
-  reap status   show whether gaming mode is active, what changed, recent runs
-  reap help     show this help
+  reap gaming        stop non-essential services/apps + apply optimizations
+  reap play <game>   gaming + launch <game> on the dGPU + auto-restore on exit
+  reap exit          restore everything 'gaming' changed (no-op if no saved state)
+  reap status        show whether gaming mode is active, what changed, recent runs
+  reap help          show this help
 
 State and the execution journal (last 10 runs) are kept in
 ${XDG_STATE_HOME:-$HOME/.local/state}/reap/.
@@ -66,8 +67,10 @@ EOF
 
 reap::main() {
   local command="${1:-help}"
+  shift || true
   case "$command" in
     gaming) reap::gaming ;;
+    play) reap::play "$@" ;;
     exit) reap::exit ;;
     status) reap::status ;;
     help | -h | --help) reap::help ;;

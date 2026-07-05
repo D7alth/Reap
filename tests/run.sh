@@ -88,6 +88,18 @@ assert_eq "$(gpu::_offload_command 1 0)" "prime-run <your-game>" "prime-run only
 assert_eq "$(gpu::_offload_command 0 1)" "__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia gamemoderun <your-game>" "env fallback + gamemode"
 assert_eq "$(gpu::_offload_command 0 0)" "__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia <your-game>" "env fallback only"
 
+echo "gpu launch argv (spec-play.md):"
+argv() { gpu::_launch_argv "$@" | tr '\n' '|'; }
+assert_eq "$(argv 1 1 eldenring)" "prime-run|gamemoderun|eldenring|" "prime-run + gamemode + game"
+assert_eq "$(argv 1 0 eldenring)" "prime-run|eldenring|" "prime-run, no gamemode"
+assert_eq "$(argv 0 1 eldenring)" "env|__NV_PRIME_RENDER_OFFLOAD=1|__GLX_VENDOR_LIBRARY_NAME=nvidia|gamemoderun|eldenring|" "env fallback + gamemode"
+assert_eq "$(argv 1 1 eldenring --windowed)" "prime-run|gamemoderun|eldenring|--windowed|" "game args are preserved"
+assert_eq "$(argv 1 1 'my game' -x)" "prime-run|gamemoderun|my game|-x|" "arg with space stays one token"
+
+echo "gpu game resolution (fail-fast, spec-play.md):"
+assert_true gpu::_resolve_game sh
+assert_false gpu::_resolve_game reap-definitely-not-a-real-binary-xyz
+
 echo
 echo "passed: $PASS  failed: $FAIL"
 ((FAIL == 0))

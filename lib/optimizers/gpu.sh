@@ -83,22 +83,62 @@ gpu::apply() {
       log::warn "gpu: PRIME profile is 'intel' — the NVIDIA dGPU is likely powered off; run 'sudo prime-select on-demand' and reboot to enable offload"
       ;;
     offload | unknown)
-      local has_prime_run=0 has_gamemode=0 cmd
-      command -v prime-run >/dev/null 2>&1 && has_prime_run=1
-      gamemode::is_available && has_gamemode=1
-      cmd="$(gpu::_offload_command "$has_prime_run" "$has_gamemode")"
-      if [[ "$advice" == "unknown" ]]; then
-        log::info "gpu: could not confirm PRIME mode (prime-select absent) — if your driver supports render offload, launch the game on the dGPU with:"
+      # Under 'reap play' the launch is done by reap itself (gpu::launch), so the
+      # copy-paste guidance would be redundant — just confirm the plan + VRAM.
+      if [[ -n "${REAP_PLAY_ACTIVE:-}" ]]; then
+        log::info "gpu: reap will launch the game on the dGPU (render offload)"
+        gpu::_report_vram
       else
-        log::info "gpu: render offload available — launch the game on the dGPU with:"
+        local has_prime_run=0 has_gamemode=0 cmd
+        command -v prime-run >/dev/null 2>&1 && has_prime_run=1
+        gamemode::is_available && has_gamemode=1
+        cmd="$(gpu::_offload_command "$has_prime_run" "$has_gamemode")"
+        if [[ "$advice" == "unknown" ]]; then
+          log::info "gpu: could not confirm PRIME mode (prime-select absent) — if your driver supports render offload, launch the game on the dGPU with:"
+        else
+          log::info "gpu: render offload available — launch the game on the dGPU with:"
+        fi
+        log::info "gpu:     $cmd"
+        gpu::_report_vram
       fi
-      log::info "gpu:     $cmd"
-      gpu::_report_vram
       ;;
   esac
   return 0
 }
 
 gpu::revert() { return 0; }
+
+# --- launch (used by 'reap play' — spec-play.md) ------------------------------
+
+# True if the game is runnable now (on PATH, or an executable path). Fail-fast so
+# 'reap play' never stops services for a game it can't launch.
+gpu::_resolve_game() { command -v "$1" >/dev/null 2>&1; }
+
+# Pure argv builder (unit-tested): emits one token per line so callers can read it
+# back into an array without a shell re-parse (no eval — args with spaces survive).
+gpu::_launch_argv() {
+  local has_prime_run="$1" has_gamemode="$2"
+  shift 2
+  local -a cmd=()
+  if ((has_prime_run)); then
+    cmd+=(prime-run)
+  else
+    cmd+=(env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia)
+  fi
+  ((has_gamemode)) && cmd+=(gamemoderun)
+  cmd+=("$@")
+  printf '%s\n' "${cmd[@]}"
+}
+
+# Launch <game> [args…] on the dGPU and BLOCK until it exits; returns its code.
+gpu::launch() {
+  local has_prime_run=0 has_gamemode=0
+  command -v prime-run >/dev/null 2>&1 && has_prime_run=1
+  gamemode::is_available && has_gamemode=1
+  local -a cmd=()
+  mapfile -t cmd < <(gpu::_launch_argv "$has_prime_run" "$has_gamemode" "$@")
+  log::info "gpu: launching on dGPU: ${cmd[*]}"
+  "${cmd[@]}"
+}
 
 registry::register gpu gpu::apply gpu::revert

@@ -106,6 +106,11 @@ To uninstall, remove the symlink (or the `PATH` line) — `reap` writes only to
     `performance` profile and `vm.swappiness=10`, behind a thermal guard.
   - `thermal` — forced performance requires `thermald` active **and** temperature
     below 85 °C, otherwise CPU tuning stands down.
+  - `gpu` — on this hybrid-NVIDIA (Optimus) laptop, detects the dGPU + PRIME mode
+    and prints the exact command to render the game on the NVIDIA dGPU
+    (`prime-run gamemoderun <game>`, or the `__NV_PRIME_RENDER_OFFLOAD` env method).
+    Advisory only — reap doesn't launch the game, so it changes no system state and
+    has nothing to revert. See [.claude/spec-gpu-offload.md](.claude/spec-gpu-offload.md).
 
 State lives in `${XDG_STATE_HOME:-$HOME/.local/state}/reap/`. A `flock` prevents
 two concurrent runs from corrupting it, and backups are never overwritten
@@ -125,7 +130,7 @@ lib/services.sh          service target set + stop/restore
 lib/denylist.sh          non-editable protection list
 lib/apps.sh              graceful app shutdown
 lib/registry.sh          optimizer registry
-lib/optimizers/*.sh      gamemode, cpu, vm, thermal
+lib/optimizers/*.sh      gamemode, cpu, vm, thermal, gpu
 tests/run.sh             root-free tests (denylist, state, journal)
 ```
 

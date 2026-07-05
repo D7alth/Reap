@@ -17,6 +17,10 @@ source "$LIB_DIR/state.sh"
 source "$LIB_DIR/denylist.sh"
 # shellcheck source=/dev/null
 source "$LIB_DIR/journal.sh"
+# shellcheck source=/dev/null
+source "$LIB_DIR/registry.sh"
+# shellcheck source=/dev/null
+source "$LIB_DIR/optimizers/gpu.sh"
 
 PASS=0
 FAIL=0
@@ -71,6 +75,18 @@ assert_eq "$distinct" "10" "retention keeps exactly 10 sessions"
 if grep -q '"session":"sess-01"' "$REAP_LOG_FILE"; then no "oldest session dropped"; else ok "oldest session (sess-01) dropped"; fi
 if grep -q '"session":"sess-12"' "$REAP_LOG_FILE"; then ok "newest session (sess-12) kept"; else no "newest session kept"; fi
 unset REAP_SESSION_ID REAP_SESSION_CMD REAP_LOG_FILE
+
+echo "gpu offload classification (spec v1.5):"
+assert_eq "$(gpu::_classify_mode on-demand)" "offload" "on-demand => offload"
+assert_eq "$(gpu::_classify_mode nvidia)" "already" "nvidia => already (dGPU renders all)"
+assert_eq "$(gpu::_classify_mode intel)" "blocked" "intel => blocked (dGPU off)"
+assert_eq "$(gpu::_classify_mode wat)" "unknown" "unrecognized => unknown"
+
+echo "gpu offload launch command:"
+assert_eq "$(gpu::_offload_command 1 1)" "prime-run gamemoderun <your-game>" "prime-run + gamemode"
+assert_eq "$(gpu::_offload_command 1 0)" "prime-run <your-game>" "prime-run only"
+assert_eq "$(gpu::_offload_command 0 1)" "__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia gamemoderun <your-game>" "env fallback + gamemode"
+assert_eq "$(gpu::_offload_command 0 0)" "__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia <your-game>" "env fallback only"
 
 echo
 echo "passed: $PASS  failed: $FAIL"

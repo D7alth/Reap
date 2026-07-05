@@ -30,6 +30,8 @@ source "$REAP_LIB_DIR/optimizers/cpu.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/optimizers/vm.sh"
 # shellcheck source=/dev/null
+source "$REAP_LIB_DIR/optimizers/gpu.sh"
+# shellcheck source=/dev/null
 source "$REAP_LIB_DIR/status.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/core.sh"

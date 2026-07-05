@@ -13,7 +13,7 @@ reap::_acquire_lock() {
 }
 
 reap::_has_optimizer_state() {
-  state::has vm-swappiness || state::has cpu-governor || state::has ppd-profile
+  state::has vm-swappiness || state::has cpu-governor || state::has ppd-profile || state::has gpu-powermizer
 }
 
 reap::gaming() {

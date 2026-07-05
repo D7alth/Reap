@@ -21,6 +21,8 @@ source "$LIB_DIR/journal.sh"
 source "$LIB_DIR/registry.sh"
 # shellcheck source=/dev/null
 source "$LIB_DIR/optimizers/gpu.sh"
+# shellcheck source=/dev/null
+source "$LIB_DIR/optimizers/gpu-clock.sh"
 
 PASS=0
 FAIL=0
@@ -99,6 +101,17 @@ assert_eq "$(argv 1 1 'my game' -x)" "prime-run|gamemoderun|my game|-x|" "arg wi
 echo "gpu game resolution (fail-fast, spec-play.md):"
 assert_true gpu::_resolve_game sh
 assert_false gpu::_resolve_game reap-definitely-not-a-real-binary-xyz
+
+echo "gpu-clock PowerMizer helpers (spec-fps-fix.md):"
+assert_true gpuclock::_is_int 0
+assert_true gpuclock::_is_int 2
+assert_false gpuclock::_is_int adaptive
+assert_false gpuclock::_is_int ""
+state::save_once gpu-powermizer 0 >/dev/null
+state::save_once gpu-powermizer 1 >/dev/null # must NOT overwrite the original
+assert_eq "$(state::load gpu-powermizer)" "0" "save_once keeps original PowerMizer mode"
+state::clear gpu-powermizer
+assert_false state::has gpu-powermizer
 
 echo
 echo "passed: $PASS  failed: $FAIL"

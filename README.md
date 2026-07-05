@@ -118,6 +118,10 @@ To uninstall, remove the symlink (or the `PATH` line) — `reap` writes only to
     (`prime-run gamemoderun <game>`, or the `__NV_PRIME_RENDER_OFFLOAD` env method).
     Advisory only — reap doesn't launch the game, so it changes no system state and
     has nothing to revert. See [.claude/spec-gpu-offload.md](.claude/spec-gpu-offload.md).
+  - `gpu-clock` — pins the NVIDIA **PowerMizer** to *Prefer Maximum Performance*
+    (`GPUPowerMizerMode=1`) via `nvidia-settings` (user-level, no sudo) and restores
+    the original mode on `exit`. Fixes the "60 → 10 fps, alt-tab restores it" clock
+    collapse; behind the thermal guard. See [.claude/spec-fps-fix.md](.claude/spec-fps-fix.md).
 
 State lives in `${XDG_STATE_HOME:-$HOME/.local/state}/reap/`. A `flock` prevents
 two concurrent runs from corrupting it, and backups are never overwritten
@@ -138,7 +142,7 @@ lib/services.sh          service target set + stop/restore
 lib/denylist.sh          non-editable protection list
 lib/apps.sh              graceful app shutdown
 lib/registry.sh          optimizer registry
-lib/optimizers/*.sh      gamemode, cpu, vm, thermal, gpu
+lib/optimizers/*.sh      gamemode, cpu, vm, thermal, gpu, gpu-clock
 tests/run.sh             root-free tests (denylist, state, journal)
 ```
 

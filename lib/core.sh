@@ -54,7 +54,9 @@ reap — free up system resources for gaming, then restore everything.
 
 Usage:
   reap gaming        stop non-essential services/apps + apply optimizations
-  reap play <game>   gaming + launch <game> on the dGPU + auto-restore on exit
+  reap play <game>   gaming + launch <game> on the dGPU + auto-restore on exit;
+                     <game> is a binary on PATH or steam:<appid> for Steam/Proton
+                     games (e.g. 'reap play steam:2622380')
   reap exit          restore everything 'gaming' changed (no-op if no saved state)
   reap status        show whether gaming mode is active, what changed, recent runs
   reap help          show this help

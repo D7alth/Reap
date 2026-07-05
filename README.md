@@ -9,10 +9,11 @@ This project started as a practical need: an old notebook with 16GB RAM and a GT
 ## Usage
 
 ```
-reap gaming        # stop non-essential services/apps + apply optimizations
-reap play <game>   # gaming + launch <game> on the dGPU + auto-restore when it exits
-reap exit          # restore exactly what 'gaming' changed (no-op if no saved state)
-reap status        # show if gaming mode is active, what changed, and recent runs
+reap gaming               # stop non-essential services/apps + apply optimizations
+reap play <game>          # gaming + launch <game> on the dGPU + auto-restore when it exits
+reap play steam:<appid>   # same, for Steam/Proton games (e.g. steam:2622380)
+reap exit                 # restore exactly what 'gaming' changed (no-op if no saved state)
+reap status               # show if gaming mode is active, what changed, and recent runs
 reap help
 ```
 
@@ -23,6 +24,15 @@ Apps are **not** reopened automatically — relaunch them yourself after `exit`.
 when present), blocks until the game exits, then restores everything — automatically,
 even on a crash or Ctrl-C. It refuses to start if a `gaming` session is already
 active (run `reap exit` first). See [.claude/spec-play.md](.claude/spec-play.md).
+
+For **Steam/Proton games** (EAC included), use `reap play steam:<appid>` — e.g.
+`reap play steam:2622380` for ELDEN RING NIGHTREIGN. reap resolves the appid in your
+Steam libraries (fails fast if not installed), launches through the Steam client and,
+since Steam daemonizes, waits on the game's **process tree** (any process referencing
+the install dir) before restoring. Notes: GPU/offload env and `mangohud gamemoderun`
+belong in the game's Steam **Launch Options** (reap can't inject env into Steam's
+child); reap never kills the game — on Ctrl-C it restores the system and leaves the
+game running; the game's own exit code isn't observable through Steam.
 
 ## Status & logs
 
@@ -136,6 +146,7 @@ lib/log.sh               console logging + notify (mirrors to journal)
 lib/journal.sh           persistent JSONL execution log (last 10 runs)
 lib/status.sh            reap status (read-only report)
 lib/play.sh              reap play (session orchestrator: gaming + launch + restore)
+lib/steam.sh             Steam appid targets (resolve, launch via steam://, process-tree wait)
 lib/state.sh             save/restore with idempotency guard
 lib/privilege.sh         sudo preflight + verified execution
 lib/services.sh          service target set + stop/restore

@@ -23,6 +23,10 @@ source "$LIB_DIR/registry.sh"
 source "$LIB_DIR/optimizers/gpu.sh"
 # shellcheck source=/dev/null
 source "$LIB_DIR/optimizers/gpu-clock.sh"
+# shellcheck source=/dev/null
+source "$LIB_DIR/apps.sh"
+# shellcheck source=/dev/null
+source "$LIB_DIR/steam.sh"
 
 PASS=0
 FAIL=0
@@ -112,6 +116,45 @@ state::save_once gpu-powermizer 1 >/dev/null # must NOT overwrite the original
 assert_eq "$(state::load gpu-powermizer)" "0" "save_once keeps original PowerMizer mode"
 state::clear gpu-powermizer
 assert_false state::has gpu-powermizer
+
+echo "steam target parsing (spec-fps-fix.md §3.2):"
+assert_eq "$(steam::parse_target steam:2622380)" "2622380" "steam:<appid> form"
+assert_eq "$(steam::parse_target 945360)" "945360" "bare digits form"
+assert_false steam::parse_target eldenring
+assert_false steam::parse_target steam:
+assert_false steam::parse_target steam:12ab
+assert_false steam::parse_target ""
+
+echo "steam manifest/vdf parsing:"
+FAKE_LIB="$REAP_STATE_DIR/fakelib"
+mkdir -p "$FAKE_LIB/steamapps/common/Fake Game"
+cat >"$FAKE_LIB/steamapps/appmanifest_111.acf" <<'ACF'
+"AppState"
+{
+	"appid"		"111"
+	"name"		"Fake Game"
+	"installdir"		"Fake Game"
+}
+ACF
+assert_eq "$(steam::_manifest_field "$FAKE_LIB/steamapps/appmanifest_111.acf" name)" "Fake Game" "manifest name"
+assert_eq "$(steam::_manifest_field "$FAKE_LIB/steamapps/appmanifest_111.acf" installdir)" "Fake Game" "manifest installdir"
+cat >"$FAKE_LIB/steamapps/libraryfolders.vdf" <<VDF
+"libraryfolders"
+{
+	"0"
+	{
+		"path"		"$FAKE_LIB"
+	}
+}
+VDF
+assert_eq "$(steam::_vdf_paths "$FAKE_LIB/steamapps/libraryfolders.vdf")" "$FAKE_LIB" "vdf path extraction"
+
+echo "steam appid resolution (mocked library roots):"
+steam::_library_roots() { printf '%s\n' "$FAKE_LIB"; } # mock the fs-discovery border
+assert_true steam::resolve 111
+assert_eq "$REAP_STEAM_GAME_NAME" "Fake Game" "resolve sets game name"
+assert_eq "$REAP_STEAM_GAME_DIR" "$FAKE_LIB/steamapps/common/Fake Game" "resolve sets game dir"
+assert_false steam::resolve 999
 
 echo
 echo "passed: $PASS  failed: $FAIL"

@@ -20,6 +20,8 @@ source "$REAP_LIB_DIR/services.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/apps.sh"
 # shellcheck source=/dev/null
+source "$REAP_LIB_DIR/steam.sh"
+# shellcheck source=/dev/null
 source "$REAP_LIB_DIR/registry.sh"
 # shellcheck source=/dev/null
 source "$REAP_LIB_DIR/optimizers/gamemode.sh"

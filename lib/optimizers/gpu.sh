@@ -86,7 +86,11 @@ gpu::apply() {
       # Under 'reap play' the launch is done by reap itself (gpu::launch), so the
       # copy-paste guidance would be redundant — just confirm the plan + VRAM.
       if [[ -n "${REAP_PLAY_ACTIVE:-}" ]]; then
-        log::info "gpu: reap will launch the game on the dGPU (render offload)"
+        if [[ "${REAP_PLAY_TARGET:-}" == "steam" ]]; then
+          log::info "gpu: Steam target — reap can't inject env into Steam's child; keep the offload wrapper in the game's Launch Options"
+        else
+          log::info "gpu: reap will launch the game on the dGPU (render offload)"
+        fi
         gpu::_report_vram
       else
         local has_prime_run=0 has_gamemode=0 cmd
